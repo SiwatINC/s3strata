@@ -1,0 +1,51 @@
+{
+	"name": "s3strata",
+	"version": "1.1.0",
+	"description": "Object storage abstraction layer with dual-bucket tiered storage and visibility control for Bun/TypeScript",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": ["dist", "README.md", "LICENSE"],
+	"type": "module",
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"typecheck": "tsc --noEmit",
+		"prepublishOnly": "bun run build"
+	},
+	"keywords": [
+		"s3",
+		"object-storage",
+		"storage",
+		"tiered-storage",
+		"hot-cold-storage",
+		"file-management",
+		"multi-endpoint",
+		"backblaze-b2",
+		"wasabi",
+		"minio",
+		"bun",
+		"typescript"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yourusername/s3strata.git"
+	},
+	"bugs": {
+		"url": "https://github.com/yourusername/s3strata/issues"
+	},
+	"homepage": "https://github.com/yourusername/s3strata#readme",
+	"peerDependencies": {
+		"bun": ">=1.0.0"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/node": "^24.9.1",
+		"tsup": "^8.4.0",
+		"typescript": "^5.8.2"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	}
+}
