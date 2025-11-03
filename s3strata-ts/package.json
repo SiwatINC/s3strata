@@ -1,9 +1,19 @@
 {
 	"name": "@siwats/s3strata",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"description": "Object storage abstraction layer with dual-bucket tiered storage and visibility control for Bun/TypeScript",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"bun": "./dist/index.js",
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"sideEffects": false,
+	"browser": false,
 	"files": [
 		"dist",
 		"README.md",
@@ -51,7 +61,7 @@
 		"typescript": "^5.8.2"
 	},
 	"engines": {
-		"node": ">=18.0.0"
+		"bun": ">=1.0.0"
 	},
 	"dependencies": {
 		"@biomejs/biome": "^2.3.2"

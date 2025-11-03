@@ -27,12 +27,18 @@ export class ObjectStoreService {
 	private createClient(tierConfig: S3TierConfig) {
 		const protocol = tierConfig.useSSL !== false ? "https" : "http";
 		const port = tierConfig.port ?? (tierConfig.useSSL !== false ? 443 : 80);
-		const endpoint = `${protocol}://${tierConfig.endpoint}:${port}`;
+
+		// Only include port in endpoint if it's non-standard
+		// Standard ports: 80 for http, 443 for https
+		const isStandardPort = (protocol === "http" && port === 80) || (protocol === "https" && port === 443);
+		const endpoint = isStandardPort
+			? `${protocol}://${tierConfig.endpoint}`
+			: `${protocol}://${tierConfig.endpoint}:${port}`;
 
 		return {
 			bucket: tierConfig.bucket,
 			endpoint: tierConfig.endpoint,
-			port: tierConfig.port ?? 443,
+			port: port,
 			useSSL: tierConfig.useSSL !== false,
 			credentials: {
 				endpoint,

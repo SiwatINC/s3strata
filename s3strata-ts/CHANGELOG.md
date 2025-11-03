@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2025-11-03
+
+### Fixed
+
+- **S3 Endpoint Configuration**: Fixed S3 signature errors by properly handling endpoint URLs with standard and non-standard ports
+  - Standard ports (80 for HTTP, 443 for HTTPS) are now excluded from the endpoint URL
+  - Non-standard ports are correctly included in the endpoint URL (e.g., `http://localhost:9000`)
+  - Resolves "SignatureDoesNotMatch" errors when connecting to S3-compatible services
+  - Improves compatibility with MinIO and other S3-compatible storage providers
+
 ## [1.4.0] - 2025-11-03
 
 ### Added
