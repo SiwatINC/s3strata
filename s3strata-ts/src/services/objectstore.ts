@@ -26,7 +26,8 @@ export class ObjectStoreService {
 	 */
 	private createClient(tierConfig: S3TierConfig) {
 		const protocol = tierConfig.useSSL !== false ? "https" : "http";
-		const endpoint = `${protocol}://${tierConfig.endpoint}`;
+		const port = tierConfig.port ?? (tierConfig.useSSL !== false ? 443 : 80);
+		const endpoint = `${protocol}://${tierConfig.endpoint}:${port}`;
 
 		return {
 			bucket: tierConfig.bucket,
@@ -118,7 +119,7 @@ export class ObjectStoreService {
 		try {
 			const client = this.getClient(tier);
 			const file = S3Client.file(path, client.credentials);
-			return file !== null;
+			return await file.exists();
 		} catch {
 			return false;
 		}

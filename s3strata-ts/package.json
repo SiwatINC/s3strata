@@ -1,6 +1,6 @@
 {
 	"name": "@siwats/s3strata",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "Object storage abstraction layer with dual-bucket tiered storage and visibility control for Bun/TypeScript",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -21,7 +21,8 @@
 		"lint:fix": "biome lint --write ./src",
 		"format": "biome format --write ./src",
 		"check": "biome check --write ./src",
-		"prepublishOnly": "bun run build"
+		"prepublishOnly": "bun run build",
+"test:minio": "bun run src/examples/minio-test.ts"
 	},
 	"keywords": [
 		"s3",

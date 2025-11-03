@@ -62,6 +62,10 @@ class InMemoryStorageAdapter implements StorageAdapter {
 				file.storage_tier === StorageTier.HOT && file.hot_until !== null && file.hot_until <= now,
 		);
 	}
+
+	async findAll(): Promise<PhysicalFile[]> {
+		return Array.from(this.files.values());
+	}
 }
 
 // Example usage - Shared endpoint mode

@@ -260,4 +260,11 @@ export class FileManager {
 
 		return movedCount;
 	}
+
+	/**
+	 * List all files from the database
+	 */
+	async listFiles(): Promise<PhysicalFile[]> {
+		return await this.adapter.findAll();
+	}
 }

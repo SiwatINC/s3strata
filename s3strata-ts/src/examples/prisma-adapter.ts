@@ -86,4 +86,8 @@ export class PrismaStorageAdapter implements StorageAdapter {
 			},
 		});
 	}
+
+	async findAll(): Promise<PhysicalFile[]> {
+		return await this.prisma.physicalFile.findMany();
+	}
 }

@@ -318,6 +318,16 @@ const movedCount = await fileManager.archiveExpiredHotFiles();
 console.log(`Archived ${movedCount} files from HOT to COLD`);
 ```
 
+#### `listFiles(): Promise<PhysicalFile[]>`
+
+List all file records from the database.
+
+**Example:**
+```typescript
+const allFiles = await fileManager.listFiles();
+console.log(allFiles);
+```
+
 ## Storage Adapter Examples
 
 ### Prisma Adapter

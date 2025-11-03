@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-11-03
+
+### Added
+
+- `listFiles()` method to `FileManager` to retrieve all file records from the database.
+
+### Changed
+
+- `StorageAdapter` interface updated with a new `findAll()` method.
+
+### Fixed
+
+- Corrected Bun's `S3Client` configuration for improved compatibility with S3-compatible services like MinIO.
+- Fixed the `exists()` method to accurately report file existence in the object store.
+
 ## [1.1.0] - 2025-11-03
 
 ### Added
