@@ -4,7 +4,11 @@
 	"description": "Object storage abstraction layer with dual-bucket tiered storage and visibility control for Bun/TypeScript",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist", "README.md", "LICENSE"],
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
 	"type": "module",
 	"publishConfig": {
 		"access": "public"
@@ -34,7 +38,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/SiwatINC/s3strata"
+		"url": "git+https://github.com/SiwatINC/s3strata.git"
 	},
 	"peerDependencies": {
 		"bun": ">=1.0.0"
