@@ -119,6 +119,13 @@ const config: S3StrataConfig = {
   secretKey: 'YOUR_SECRET_KEY',
   hotBucket: 'my-hot-bucket',
   coldBucket: 'my-cold-bucket',
+  // Advanced options (optional)
+  advanced: {
+    defaultPresignedUrlExpiration: 7200, // 2 hours (default: 14400 = 4 hours)
+    maxFileSize: 500 * 1024 * 1024, // 500MB (default: Infinity = no limit)
+    defaultStorageTier: StorageTier.HOT, // default: StorageTier.HOT
+    defaultVisibility: FileVisibility.PRIVATE, // default: FileVisibility.PRIVATE
+  },
 };
 
 // Create your storage adapter instance
@@ -154,6 +161,41 @@ const fileManager = new FileManager(config, adapter);
 ```
 
 See [MULTI_ENDPOINT.md](MULTI_ENDPOINT.md) for detailed multi-endpoint configuration guide.
+
+### Advanced Configuration Options
+
+S3Strata allows you to customize default behaviors through the `advanced` configuration object:
+
+```typescript
+const config: S3StrataConfig = {
+  // ... your S3 configuration ...
+  advanced: {
+    // Default expiration time for presigned URLs in seconds
+    // Default: 14400 (4 hours)
+    defaultPresignedUrlExpiration: 3600, // 1 hour
+
+    // Maximum allowed file size in bytes
+    // Default: Infinity (no limit)
+    maxFileSize: 100 * 1024 * 1024, // 100MB
+
+    // Default storage tier for new files
+    // Default: StorageTier.HOT
+    defaultStorageTier: StorageTier.HOT,
+
+    // Default visibility for new files
+    // Default: FileVisibility.PRIVATE
+    defaultVisibility: FileVisibility.PRIVATE,
+  },
+};
+```
+
+**When to use advanced options:**
+- Set `maxFileSize` to enforce upload limits and prevent abuse
+- Customize `defaultPresignedUrlExpiration` based on your security requirements
+- Change `defaultStorageTier` if you want new uploads to go to COLD storage by default
+- Set `defaultVisibility` to PUBLIC if most of your files should be publicly accessible
+
+All advanced options are optional and have sensible defaults. You can override defaults on a per-operation basis (e.g., specify `expiresIn` when calling `getUrl()`).
 
 ### 3. Use FileManager
 
@@ -478,6 +520,7 @@ import type {
   PhysicalFile,
   StorageAdapter,
   S3StrataConfig,
+  S3StrataAdvancedOptions,
   UploadOptions,
   GetUrlOptions,
   SetVisibilityOptions,

@@ -79,6 +79,13 @@ async function exampleSharedEndpoint() {
 		secretKey: process.env.S3_SECRET_KEY || "your-secret-key",
 		hotBucket: "my-hot-bucket",
 		coldBucket: "my-cold-bucket",
+		// Advanced options (optional) - customize defaults
+		advanced: {
+			defaultPresignedUrlExpiration: 7200, // 2 hours (default: 14400 = 4 hours)
+			maxFileSize: 500 * 1024 * 1024, // 500MB (default: Infinity = no limit)
+			defaultStorageTier: StorageTier.HOT, // default: StorageTier.HOT
+			defaultVisibility: FileVisibility.PRIVATE, // default: FileVisibility.PRIVATE
+		},
 	};
 
 	// 2. Create storage adapter
@@ -152,6 +159,13 @@ async function exampleSeparateEndpoints() {
 			accessKey: process.env.S3_COLD_ACCESS_KEY || "cold-access-key",
 			secretKey: process.env.S3_COLD_SECRET_KEY || "cold-secret-key",
 			bucket: "my-archive-bucket",
+		},
+		// Advanced options apply to both tiers
+		advanced: {
+			defaultPresignedUrlExpiration: 3600, // 1 hour
+			maxFileSize: 1024 * 1024 * 1024, // 1GB
+			defaultStorageTier: StorageTier.HOT,
+			defaultVisibility: FileVisibility.PRIVATE,
 		},
 	};
 

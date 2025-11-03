@@ -1,9 +1,17 @@
 // Export types
 
 // Export configuration
-export type { S3StrataConfig, S3TierConfig } from "./config";
-export { getBucketName, getPathPrefix, getTierConfig } from "./config";
-// Export constants
+export type { S3StrataAdvancedOptions, S3StrataConfig, S3TierConfig } from "./config";
+export {
+	getBucketName,
+	getDefaultPresignedUrlExpiration,
+	getDefaultStorageTier,
+	getDefaultVisibility,
+	getMaxFileSize,
+	getPathPrefix,
+	getTierConfig,
+} from "./config";
+// Export constants (kept for backward compatibility, but prefer using config.advanced)
 export {
 	DEFAULT_PRESIGNED_URL_EXPIRATION,
 	DEFAULT_STORAGE_TIER,
@@ -27,4 +35,4 @@ export type {
 	StorageConfig,
 	UploadOptions,
 } from "./types";
-export { FileVisibility, StorageTier } from "./types";
+export { FileVisibility, StorageTier, isValidStorageTier, normalizeStorageTier } from "./types";

@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-11-03
+
+### Added
+
+- **Prisma Compatibility**: `PhysicalFile.storage_tier` now accepts string literals `"HOT" | "COLD"` in addition to the `StorageTier` enum
+  - Fixes type incompatibility issues when using Prisma-generated enum types
+  - No breaking changes - existing code using `StorageTier` enum continues to work
+- New utility functions for storage tier validation:
+  - `normalizeStorageTier(tier)`: Converts string literals to `StorageTier` enum
+  - `isValidStorageTier(value)`: Type guard to validate storage tier values
+
+### Changed
+
+- `FileManager` methods now internally normalize `storage_tier` values for consistent behavior
+- All file operations accept both enum and string literal values seamlessly
+
+### Fixed
+
+- Type error when passing Prisma-generated `PhysicalFile` objects to `FileManager` methods
+
+## [1.3.0] - 2025-11-03
+
+### Added
+
+- **Advanced Configuration Options**: New `advanced` object in `S3StrataConfig` to customize default behaviors
+  - `defaultPresignedUrlExpiration`: Customize default presigned URL expiration time (default: 14400 = 4 hours)
+  - `maxFileSize`: Set maximum allowed file size in bytes (default: Infinity = no limit)
+  - `defaultStorageTier`: Configure default storage tier for uploads (default: StorageTier.HOT)
+  - `defaultVisibility`: Set default visibility for new files (default: FileVisibility.PRIVATE)
+- New `S3StrataAdvancedOptions` interface for type-safe configuration
+- Helper functions to access configured values:
+  - `getDefaultPresignedUrlExpiration(config)`
+  - `getMaxFileSize(config)`
+  - `getDefaultStorageTier(config)`
+  - `getDefaultVisibility(config)`
+
+### Changed
+
+- `FileManager` now uses configurable defaults instead of hardcoded constants
+- Default `maxFileSize` changed from 100MB to Infinity (no limit) - use `advanced.maxFileSize` to set limits
+- All hardcoded constants now have configurable alternatives via `advanced` options
+
+### Documentation
+
+- Updated README with Advanced Configuration Options section
+- Added examples demonstrating the use of advanced configuration
+- Updated TypeScript type exports to include `S3StrataAdvancedOptions`
+
 ## [1.2.0] - 2025-11-03
 
 ### Added

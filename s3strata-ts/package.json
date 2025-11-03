@@ -1,6 +1,6 @@
 {
 	"name": "@siwats/s3strata",
-	"version": "1.2.0",
+	"version": "1.4.0",
 	"description": "Object storage abstraction layer with dual-bucket tiered storage and visibility control for Bun/TypeScript",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

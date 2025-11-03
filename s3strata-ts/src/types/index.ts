@@ -12,4 +12,4 @@ export type {
 } from "./options";
 export type { PhysicalFile } from "./physical-file";
 export type { StorageAdapter } from "./storage-adapter";
-export { StorageTier } from "./storage-tier";
+export { isValidStorageTier, normalizeStorageTier, StorageTier } from "./storage-tier";

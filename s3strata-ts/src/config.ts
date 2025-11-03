@@ -2,6 +2,20 @@ import { FileVisibility } from "./types/file-visibility";
 import { StorageTier } from "./types/storage-tier";
 
 /**
+ * Advanced options for S3Strata behavior
+ */
+export interface S3StrataAdvancedOptions {
+	/** Default expiration time for presigned URLs in seconds (default: 14400 = 4 hours) */
+	defaultPresignedUrlExpiration?: number;
+	/** Maximum allowed file size in bytes (default: Infinity = no limit) */
+	maxFileSize?: number;
+	/** Default storage tier for new files (default: StorageTier.HOT) */
+	defaultStorageTier?: StorageTier;
+	/** Default visibility for new files (default: FileVisibility.PRIVATE) */
+	defaultVisibility?: FileVisibility;
+}
+
+/**
  * S3 tier-specific configuration
  */
 export interface S3TierConfig {
@@ -59,6 +73,10 @@ export interface S3StrataConfig {
 	hot?: S3TierConfig;
 	/** COLD storage configuration (overrides shared config) */
 	cold?: S3TierConfig;
+
+	// Advanced options
+	/** Advanced configuration options with sensible defaults */
+	advanced?: S3StrataAdvancedOptions;
 }
 
 /**
@@ -119,4 +137,32 @@ export function getPathPrefix(
 		return tierConfig.publicPrefix ?? "public";
 	}
 	return tierConfig.privatePrefix ?? "private";
+}
+
+/**
+ * Get default presigned URL expiration from config (in seconds)
+ */
+export function getDefaultPresignedUrlExpiration(config: S3StrataConfig): number {
+	return config.advanced?.defaultPresignedUrlExpiration ?? 14400; // 4 hours
+}
+
+/**
+ * Get maximum file size from config (in bytes)
+ */
+export function getMaxFileSize(config: S3StrataConfig): number {
+	return config.advanced?.maxFileSize ?? Infinity; // No limit by default
+}
+
+/**
+ * Get default storage tier from config
+ */
+export function getDefaultStorageTier(config: S3StrataConfig): StorageTier {
+	return config.advanced?.defaultStorageTier ?? StorageTier.HOT;
+}
+
+/**
+ * Get default visibility from config
+ */
+export function getDefaultVisibility(config: S3StrataConfig): FileVisibility {
+	return config.advanced?.defaultVisibility ?? FileVisibility.PRIVATE;
 }

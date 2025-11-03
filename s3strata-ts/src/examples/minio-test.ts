@@ -80,6 +80,13 @@ async function testMinio() {
 		secretKey: "minioadmin",
 		hotBucket: "hot-bucket",
 		coldBucket: "cold-bucket",
+		// Advanced options (optional) - these override the defaults
+		advanced: {
+			defaultPresignedUrlExpiration: 3600, // 1 hour (default: 14400 = 4 hours)
+			maxFileSize: 50 * 1024 * 1024, // 50MB (default: Infinity = no limit)
+			defaultStorageTier: StorageTier.HOT, // default: StorageTier.HOT
+			defaultVisibility: FileVisibility.PRIVATE, // default: FileVisibility.PRIVATE
+		},
 	};
 
 	// 2. Create storage adapter

@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { getPathPrefix, type S3StrataConfig } from "../config";
 import {
-	DEFAULT_PRESIGNED_URL_EXPIRATION,
-	DEFAULT_STORAGE_TIER,
-	DEFAULT_VISIBILITY,
-} from "../constants";
+	getDefaultPresignedUrlExpiration,
+	getDefaultStorageTier,
+	getDefaultVisibility,
+	getPathPrefix,
+	type S3StrataConfig,
+} from "../config";
 import {
 	FileVisibility,
 	type GetUrlOptions,
@@ -15,7 +16,7 @@ import {
 } from "../types";
 import type { PhysicalFile } from "../types/physical-file";
 import type { StorageAdapter } from "../types/storage-adapter";
-import { StorageTier } from "../types/storage-tier";
+import { normalizeStorageTier, StorageTier } from "../types/storage-tier";
 import { ObjectStoreService } from "./objectstore";
 
 /**
@@ -57,8 +58,8 @@ export class FileManager {
 	 * Upload a file to object storage
 	 */
 	async upload(data: Buffer | Blob, options: UploadOptions = {}): Promise<PhysicalFile> {
-		const tier = options.tier ?? DEFAULT_STORAGE_TIER;
-		const visibility = options.visibility ?? DEFAULT_VISIBILITY;
+		const tier = options.tier ?? getDefaultStorageTier(this.config);
+		const visibility = options.visibility ?? getDefaultVisibility(this.config);
 
 		// Generate filename and path
 		const filename = options.filename ?? `${randomUUID()}`;
@@ -91,16 +92,17 @@ export class FileManager {
 	 * - PRIVATE files: returns presigned URL
 	 */
 	async getUrl(file: PhysicalFile, options: GetUrlOptions = {}): Promise<string> {
+		const tier = normalizeStorageTier(file.storage_tier);
 		const visibility = this.getVisibilityFromPath(file.path);
 
 		if (visibility === FileVisibility.PUBLIC) {
 			// Return direct public URL
-			return this.objectStore.getPublicUrl(file.storage_tier, file.path);
+			return this.objectStore.getPublicUrl(tier, file.path);
 		}
 
 		// Return presigned URL for private files
-		const expiresIn = options.expiresIn ?? DEFAULT_PRESIGNED_URL_EXPIRATION;
-		return await this.objectStore.getPresignedUrl(file.storage_tier, file.path, expiresIn);
+		const expiresIn = options.expiresIn ?? getDefaultPresignedUrlExpiration(this.config);
+		return await this.objectStore.getPresignedUrl(tier, file.path, expiresIn);
 	}
 
 	/**
@@ -108,6 +110,7 @@ export class FileManager {
 	 * Moves file between /public and /private prefixes
 	 */
 	async setVisibility(file: PhysicalFile, options: SetVisibilityOptions): Promise<PhysicalFile> {
+		const tier = normalizeStorageTier(file.storage_tier);
 		const currentVisibility = this.getVisibilityFromPath(file.path);
 		const newVisibility = options.visibility;
 
@@ -119,15 +122,15 @@ export class FileManager {
 		const moveFile = options.moveFile ?? true;
 
 		// Extract path suffix (everything after visibility prefix)
-		const currentPrefix = getPathPrefix(this.config, file.storage_tier, currentVisibility);
+		const currentPrefix = getPathPrefix(this.config, tier, currentVisibility);
 		const pathSuffix = file.path.substring(currentPrefix.length + 1); // +1 for the slash
 
 		// Build new path
-		const newPath = this.buildPath(file.storage_tier, newVisibility, pathSuffix);
+		const newPath = this.buildPath(tier, newVisibility, pathSuffix);
 
 		// Move file in S3 if requested
 		if (moveFile) {
-			await this.objectStore.move(file.storage_tier, file.path, file.storage_tier, newPath);
+			await this.objectStore.move(tier, file.path, tier, newPath);
 		}
 
 		// Update database via adapter
@@ -140,10 +143,11 @@ export class FileManager {
 	 * Move file between storage tiers (HOT <-> COLD)
 	 */
 	async setTier(file: PhysicalFile, options: SetTierOptions): Promise<PhysicalFile> {
+		const currentTier = normalizeStorageTier(file.storage_tier);
 		const newTier = options.tier;
 
 		// No change needed
-		if (file.storage_tier === newTier) {
+		if (currentTier === newTier) {
 			return file;
 		}
 
@@ -163,7 +167,7 @@ export class FileManager {
 		// Move file in S3 if requested
 		if (moveFile) {
 			await this.objectStore.move(
-				file.storage_tier,
+				currentTier,
 				file.path,
 				newTier,
 				file.path, // Keep same path (visibility stays the same)
@@ -187,8 +191,9 @@ export class FileManager {
 	 * Delete a file from storage and database
 	 */
 	async delete(file: PhysicalFile): Promise<void> {
+		const tier = normalizeStorageTier(file.storage_tier);
 		// Delete from S3
-		await this.objectStore.delete(file.storage_tier, file.path);
+		await this.objectStore.delete(tier, file.path);
 
 		// Delete from database via adapter
 		await this.adapter.delete(file.id);
@@ -205,7 +210,8 @@ export class FileManager {
 	 * Check if file exists in storage
 	 */
 	async exists(file: PhysicalFile): Promise<boolean> {
-		return await this.objectStore.exists(file.storage_tier, file.path);
+		const tier = normalizeStorageTier(file.storage_tier);
+		return await this.objectStore.exists(tier, file.path);
 	}
 
 	/**
@@ -213,8 +219,9 @@ export class FileManager {
 	 * Only applicable to HOT tier files
 	 */
 	async setHotDuration(file: PhysicalFile, options: SetHotDurationOptions): Promise<PhysicalFile> {
+		const tier = normalizeStorageTier(file.storage_tier);
 		// Only applies to HOT tier files
-		if (file.storage_tier !== StorageTier.HOT) {
+		if (tier !== StorageTier.HOT) {
 			throw new Error("setHotDuration only applies to HOT tier files");
 		}
 
