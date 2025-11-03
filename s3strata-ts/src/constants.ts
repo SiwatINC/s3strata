@@ -1,5 +1,5 @@
-import { StorageTier } from "./types/storage-tier";
 import { FileVisibility } from "./types/file-visibility";
+import { StorageTier } from "./types/storage-tier";
 
 /**
  * Default expiration time for presigned URLs (4 hours)

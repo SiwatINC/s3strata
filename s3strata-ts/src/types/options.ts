@@ -1,5 +1,5 @@
-import type { StorageTier } from "./storage-tier";
 import type { FileVisibility } from "./file-visibility";
+import type { StorageTier } from "./storage-tier";
 
 /**
  * Storage configuration for a specific tier

@@ -1,5 +1,5 @@
-import type { StorageTier } from "./types/storage-tier";
-import type { FileVisibility } from "./types/file-visibility";
+import { FileVisibility } from "./types/file-visibility";
+import { StorageTier } from "./types/storage-tier";
 
 /**
  * S3 tier-specific configuration
@@ -64,29 +64,26 @@ export interface S3StrataConfig {
 /**
  * Get tier configuration, resolving shared vs separate endpoint config
  */
-export function getTierConfig(
-	config: S3StrataConfig,
-	tier: StorageTier,
-): S3TierConfig {
+export function getTierConfig(config: S3StrataConfig, tier: StorageTier): S3TierConfig {
 	// If tier-specific config is provided, use it
-	if (tier === "HOT" && config.hot) {
+	if (tier === StorageTier.HOT && config.hot) {
 		return config.hot;
 	}
-	if (tier === "COLD" && config.cold) {
+	if (tier === StorageTier.COLD && config.cold) {
 		return config.cold;
 	}
 
 	// Fall back to shared config
 	if (!config.endpoint || !config.accessKey || !config.secretKey) {
 		throw new Error(
-			`Missing S3 configuration for ${tier} tier. Provide either shared config (endpoint, accessKey, secretKey, ${tier === "HOT" ? "hotBucket" : "coldBucket"}) or tier-specific config (${tier.toLowerCase()}).`,
+			`Missing S3 configuration for ${tier} tier. Provide either shared config (endpoint, accessKey, secretKey, ${tier === StorageTier.HOT ? "hotBucket" : "coldBucket"}) or tier-specific config (${tier.toLowerCase()}).`,
 		);
 	}
 
-	const bucket = tier === "HOT" ? config.hotBucket : config.coldBucket;
+	const bucket = tier === StorageTier.HOT ? config.hotBucket : config.coldBucket;
 	if (!bucket) {
 		throw new Error(
-			`Missing bucket configuration for ${tier} tier. Provide either ${tier === "HOT" ? "hotBucket" : "coldBucket"} or ${tier.toLowerCase()}.bucket`,
+			`Missing bucket configuration for ${tier} tier. Provide either ${tier === StorageTier.HOT ? "hotBucket" : "coldBucket"} or ${tier.toLowerCase()}.bucket`,
 		);
 	}
 
@@ -97,10 +94,8 @@ export function getTierConfig(
 		accessKey: config.accessKey,
 		secretKey: config.secretKey,
 		bucket,
-		publicPrefix:
-			tier === "HOT" ? config.publicHotPrefix : config.publicColdPrefix,
-		privatePrefix:
-			tier === "HOT" ? config.privateHotPrefix : config.privateColdPrefix,
+		publicPrefix: tier === StorageTier.HOT ? config.publicHotPrefix : config.publicColdPrefix,
+		privatePrefix: tier === StorageTier.HOT ? config.privateHotPrefix : config.privateColdPrefix,
 	};
 }
 
@@ -120,7 +115,7 @@ export function getPathPrefix(
 	visibility: FileVisibility,
 ): string {
 	const tierConfig = getTierConfig(config, tier);
-	if (visibility === "PUBLIC") {
+	if (visibility === FileVisibility.PUBLIC) {
 		return tierConfig.publicPrefix ?? "public";
 	}
 	return tierConfig.privatePrefix ?? "private";

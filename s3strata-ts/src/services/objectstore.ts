@@ -1,7 +1,7 @@
 import { S3Client } from "bun";
-import type { StorageTier } from "../types/storage-tier";
 import type { S3StrataConfig, S3TierConfig } from "../config";
 import { getTierConfig } from "../config";
+import { StorageTier } from "../types/storage-tier";
 
 /**
  * Low-level S3 operations abstraction
@@ -14,9 +14,9 @@ export class ObjectStoreService {
 	private readonly hotConfig: S3TierConfig;
 	private readonly coldConfig: S3TierConfig;
 
-	constructor(private readonly config: S3StrataConfig) {
-		this.hotConfig = getTierConfig(config, "HOT");
-		this.coldConfig = getTierConfig(config, "COLD");
+	constructor(config: S3StrataConfig) {
+		this.hotConfig = getTierConfig(config, StorageTier.HOT);
+		this.coldConfig = getTierConfig(config, StorageTier.COLD);
 		this.hotClient = this.createClient(this.hotConfig);
 		this.coldClient = this.createClient(this.coldConfig);
 	}
@@ -46,17 +46,13 @@ export class ObjectStoreService {
 	 * Get client for a specific tier
 	 */
 	private getClient(tier: StorageTier) {
-		return tier === "HOT" ? this.hotClient : this.coldClient;
+		return tier === StorageTier.HOT ? this.hotClient : this.coldClient;
 	}
 
 	/**
 	 * Upload a file to S3
 	 */
-	async upload(
-		tier: StorageTier,
-		path: string,
-		data: Buffer | Blob,
-	): Promise<void> {
+	async upload(tier: StorageTier, path: string, data: Buffer | Blob): Promise<void> {
 		const client = this.getClient(tier);
 		await S3Client.write(path, data, client.credentials);
 	}
@@ -131,11 +127,7 @@ export class ObjectStoreService {
 	/**
 	 * Generate a presigned URL for private file access
 	 */
-	async getPresignedUrl(
-		tier: StorageTier,
-		path: string,
-		expiresIn: number,
-	): Promise<string> {
+	async getPresignedUrl(tier: StorageTier, path: string, expiresIn: number): Promise<string> {
 		const client = this.getClient(tier);
 		return S3Client.presign(path, {
 			...client.credentials,

@@ -1,15 +1,22 @@
 {
-	"name": "s3strata",
+	"name": "@siwats/s3strata",
 	"version": "1.1.0",
 	"description": "Object storage abstraction layer with dual-bucket tiered storage and visibility control for Bun/TypeScript",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist", "README.md", "LICENSE"],
 	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch",
 		"typecheck": "tsc --noEmit",
+		"lint": "biome lint ./src",
+		"lint:fix": "biome lint --write ./src",
+		"format": "biome format --write ./src",
+		"check": "biome check --write ./src",
 		"prepublishOnly": "bun run build"
 	},
 	"keywords": [
@@ -20,22 +27,15 @@
 		"hot-cold-storage",
 		"file-management",
 		"multi-endpoint",
-		"backblaze-b2",
-		"wasabi",
-		"minio",
 		"bun",
 		"typescript"
 	],
-	"author": "",
+	"author": "Siwat Sirichai",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/yourusername/s3strata.git"
+		"url": "https://github.com/SiwatINC/s3strata"
 	},
-	"bugs": {
-		"url": "https://github.com/yourusername/s3strata/issues"
-	},
-	"homepage": "https://github.com/yourusername/s3strata#readme",
 	"peerDependencies": {
 		"bun": ">=1.0.0"
 	},
@@ -47,5 +47,8 @@
 	},
 	"engines": {
 		"node": ">=18.0.0"
+	},
+	"dependencies": {
+		"@biomejs/biome": "^2.3.2"
 	}
 }

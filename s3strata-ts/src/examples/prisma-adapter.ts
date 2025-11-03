@@ -1,5 +1,5 @@
-import type { StorageAdapter } from "../types/storage-adapter";
 import type { PhysicalFile } from "../types/physical-file";
+import type { StorageAdapter } from "../types/storage-adapter";
 import type { StorageTier } from "../types/storage-tier";
 
 /**
@@ -33,6 +33,7 @@ import type { StorageTier } from "../types/storage-tier";
  * to match your actual Prisma schema and client setup.
  */
 export class PrismaStorageAdapter implements StorageAdapter {
+	// biome-ignore lint/suspicious/noExplicitAny: Example implementation - users should replace with PrismaClient type
 	constructor(private readonly prisma: any) {
 		// Type as 'any' since we don't want to force Prisma as a dependency
 		// In real usage, this would be typed as PrismaClient
