@@ -1,6 +1,7 @@
 import { S3Client } from "bun";
 import type { S3StrataConfig, S3TierConfig } from "../config";
 import { getTierConfig } from "../config";
+import type { S3Object } from "../types/orphan";
 import { StorageTier } from "../types/storage-tier";
 
 /**
@@ -152,5 +153,43 @@ export class ObjectStoreService {
 		const portSuffix = port === 443 || port === 80 ? "" : `:${port}`;
 
 		return `${protocol}://${client.endpoint}${portSuffix}/${client.bucket}/${path}`;
+	}
+
+	/**
+	 * List all objects in a specific tier's bucket
+	 * Handles pagination automatically to retrieve all objects
+	 */
+	async listObjects(tier: StorageTier, prefix?: string): Promise<S3Object[]> {
+		const client = this.getClient(tier);
+		const objects: S3Object[] = [];
+		let continuationToken: string | undefined;
+		let isTruncated = true;
+
+		while (isTruncated) {
+			const response = await S3Client.list(
+				{
+					prefix,
+					continuationToken,
+				},
+				client.credentials,
+			);
+
+			if (response.contents) {
+				for (const item of response.contents) {
+					objects.push({
+						key: item.key,
+						lastModified: item.lastModified ? new Date(item.lastModified) : undefined,
+						size: item.size,
+						etag: item.eTag,
+						storageClass: item.storageClass,
+					});
+				}
+			}
+
+			isTruncated = response.isTruncated ?? false;
+			continuationToken = response.nextContinuationToken;
+		}
+
+		return objects;
 	}
 }

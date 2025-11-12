@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-11-12
+
+### Added
+
+- **Orphan Object Management**: New functions to detect and manage objects in S3 that don't have corresponding database records
+  - `listAllObjects(prefix?)`: Internal/dev function to list all objects across HOT and COLD buckets
+  - `listOrphanObjects(prefix?)`: Identify objects in S3 without PhysicalFile records
+  - `deleteOrphanObjects(options)`: Delete orphan objects with support for:
+    - Filtering by prefix and/or tier
+    - Dry-run mode to preview deletions without executing
+    - Detailed results including deleted paths and error reporting
+  - `adoptOrphanObjects(options)`: Create PhysicalFile records for orphan objects with:
+    - Custom filename extraction
+    - Filtering by prefix and/or tier
+    - Hot duration configuration for HOT tier files
+    - Detailed results including adopted file IDs and errors
+- New data structures for orphan management:
+  - `S3Object`: Represents a single S3 object with metadata (key, size, lastModified, etag, storageClass)
+  - `BucketObjects`: Objects in a single bucket with tier and count information
+  - `AllBucketObjects`: Comprehensive view of objects across all buckets
+  - `OrphanObject`: S3 object with tier and bucket information
+  - `AdoptOrphanOptions` and `AdoptOrphanResult`: Configuration and results for adopting orphans
+  - `DeleteOrphanOptions` and `DeleteOrphanResult`: Configuration and results for deleting orphans
+- `ObjectStoreService.listObjects(tier, prefix?)`: Low-level method to list all objects in a specific tier's bucket with automatic pagination
+
+### Changed
+
+- All orphan management functions support filtering by prefix and tier for fine-grained control
+- Comprehensive error handling with detailed error reporting for batch operations
+
 ## [1.4.1] - 2025-11-03
 
 ### Fixed

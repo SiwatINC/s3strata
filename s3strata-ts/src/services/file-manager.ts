@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+	getBucketName,
 	getDefaultPresignedUrlExpiration,
 	getDefaultStorageTier,
 	getDefaultVisibility,
@@ -7,8 +8,15 @@ import {
 	type S3StrataConfig,
 } from "../config";
 import {
+	type AdoptOrphanOptions,
+	type AdoptOrphanResult,
+	type AllBucketObjects,
+	type BucketObjects,
+	type DeleteOrphanOptions,
+	type DeleteOrphanResult,
 	FileVisibility,
 	type GetUrlOptions,
+	type OrphanObject,
 	type SetHotDurationOptions,
 	type SetTierOptions,
 	type SetVisibilityOptions,
@@ -273,5 +281,175 @@ export class FileManager {
 	 */
 	async listFiles(): Promise<PhysicalFile[]> {
 		return await this.adapter.findAll();
+	}
+
+	/**
+	 * INTERNAL/DEV: List all objects in all S3 buckets
+	 * Returns a comprehensive JSON structure with all objects across both tiers
+	 * Useful for debugging and inspecting the actual S3 state
+	 */
+	async listAllObjects(prefix?: string): Promise<AllBucketObjects> {
+		const [hotObjects, coldObjects] = await Promise.all([
+			this.objectStore.listObjects(StorageTier.HOT, prefix),
+			this.objectStore.listObjects(StorageTier.COLD, prefix),
+		]);
+
+		const hotBucket: BucketObjects = {
+			tier: StorageTier.HOT,
+			bucket: getBucketName(this.config, StorageTier.HOT),
+			objects: hotObjects,
+			count: hotObjects.length,
+		};
+
+		const coldBucket: BucketObjects = {
+			tier: StorageTier.COLD,
+			bucket: getBucketName(this.config, StorageTier.COLD),
+			objects: coldObjects,
+			count: coldObjects.length,
+		};
+
+		return {
+			hot: hotBucket,
+			cold: coldBucket,
+			totalCount: hotObjects.length + coldObjects.length,
+			collectedAt: new Date(),
+		};
+	}
+
+	/**
+	 * List all orphan objects (objects in S3 that don't have a PhysicalFile record)
+	 * Returns objects that exist in S3 but are not tracked in the database
+	 */
+	async listOrphanObjects(prefix?: string): Promise<OrphanObject[]> {
+		// Get all objects from S3
+		const [hotObjects, coldObjects, dbFiles] = await Promise.all([
+			this.objectStore.listObjects(StorageTier.HOT, prefix),
+			this.objectStore.listObjects(StorageTier.COLD, prefix),
+			this.adapter.findAll(),
+		]);
+
+		// Build a Set of all paths that exist in the database
+		const dbPaths = new Set(dbFiles.map((file) => file.path));
+
+		// Find orphans in HOT tier
+		const hotOrphans: OrphanObject[] = hotObjects
+			.filter((obj) => !dbPaths.has(obj.key))
+			.map((obj) => ({
+				...obj,
+				tier: StorageTier.HOT,
+				bucket: getBucketName(this.config, StorageTier.HOT),
+			}));
+
+		// Find orphans in COLD tier
+		const coldOrphans: OrphanObject[] = coldObjects
+			.filter((obj) => !dbPaths.has(obj.key))
+			.map((obj) => ({
+				...obj,
+				tier: StorageTier.COLD,
+				bucket: getBucketName(this.config, StorageTier.COLD),
+			}));
+
+		return [...hotOrphans, ...coldOrphans];
+	}
+
+	/**
+	 * Delete orphan objects from S3
+	 * Removes objects that exist in S3 but don't have a PhysicalFile record
+	 */
+	async deleteOrphanObjects(options: DeleteOrphanOptions = {}): Promise<DeleteOrphanResult> {
+		const orphans = await this.listOrphanObjects(options.prefix);
+
+		// Filter by tier if specified
+		const filteredOrphans = options.tier
+			? orphans.filter((orphan) => orphan.tier === options.tier)
+			: orphans;
+
+		const result: DeleteOrphanResult = {
+			deleted: 0,
+			failed: 0,
+			deletedPaths: [],
+			errors: [],
+			dryRun: options.dryRun ?? false,
+		};
+
+		for (const orphan of filteredOrphans) {
+			try {
+				if (!options.dryRun) {
+					await this.objectStore.delete(orphan.tier, orphan.key);
+				}
+				result.deleted++;
+				result.deletedPaths.push(orphan.key);
+			} catch (error) {
+				result.failed++;
+				result.errors.push({
+					path: orphan.key,
+					error: error instanceof Error ? error.message : String(error),
+				});
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Adopt orphan objects by creating PhysicalFile records for them
+	 * Creates database entries for objects that exist in S3 but aren't tracked
+	 */
+	async adoptOrphanObjects(options: AdoptOrphanOptions = {}): Promise<AdoptOrphanResult> {
+		const orphans = await this.listOrphanObjects(options.prefix);
+
+		// Filter by tier if specified
+		const filteredOrphans = options.tier
+			? orphans.filter((orphan) => orphan.tier === options.tier)
+			: orphans;
+
+		const result: AdoptOrphanResult = {
+			adopted: 0,
+			failed: 0,
+			adoptedFileIds: [],
+			errors: [],
+		};
+
+		// Default filename extractor: use the last segment of the path
+		const extractFilename =
+			options.extractFilename ??
+			((path: string) => {
+				const segments = path.split("/");
+				return segments[segments.length - 1];
+			});
+
+		for (const orphan of filteredOrphans) {
+			try {
+				const filename = extractFilename(orphan.key);
+
+				// Calculate hot_until if specified
+				let hotUntil: Date | null = null;
+				if (
+					orphan.tier === StorageTier.HOT &&
+					options.setHotUntil &&
+					options.hotDuration !== undefined
+				) {
+					hotUntil = new Date(Date.now() + options.hotDuration * 1000);
+				}
+
+				const physicalFile = await this.adapter.create({
+					storage_tier: orphan.tier,
+					filename,
+					path: orphan.key,
+					hot_until: hotUntil,
+				});
+
+				result.adopted++;
+				result.adoptedFileIds.push(physicalFile.id);
+			} catch (error) {
+				result.failed++;
+				result.errors.push({
+					path: orphan.key,
+					error: error instanceof Error ? error.message : String(error),
+				});
+			}
+		}
+
+		return result;
 	}
 }
