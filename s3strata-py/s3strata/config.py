@@ -91,12 +91,12 @@ def get_tier_config(config: S3StrataConfig, tier: StorageTier) -> S3TierConfig:
         secret_key=config.secret_key,
         bucket=bucket,
         public_prefix=(
-            config.public_hot_prefix
+            config.public_hot_prefix or "public"
             if tier == StorageTier.HOT
             else config.public_cold_prefix or "public"
         ),
         private_prefix=(
-            config.private_hot_prefix
+            config.private_hot_prefix or "private"
             if tier == StorageTier.HOT
             else config.private_cold_prefix or "private"
         ),

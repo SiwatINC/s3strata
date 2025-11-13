@@ -73,7 +73,8 @@ class ObjectStoreService:
 
         try:
             response = client.get_object(Bucket=config.bucket, Key=path)
-            return response["Body"].read()
+            data: bytes = response["Body"].read()
+            return data
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
                 raise FileNotFoundError(f"File not found: {path}") from e
@@ -130,11 +131,12 @@ class ObjectStoreService:
         client = self._get_client(tier)
         config = self._get_config(tier)
 
-        return client.generate_presigned_url(
+        url: str = client.generate_presigned_url(
             "get_object",
             Params={"Bucket": config.bucket, "Key": path},
             ExpiresIn=expires_in,
         )
+        return url
 
     def get_public_url(self, tier: StorageTier, path: str) -> str:
         """Generate a public URL"""

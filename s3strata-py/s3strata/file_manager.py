@@ -3,7 +3,7 @@
 import asyncio
 import uuid
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from .config import (
     S3StrataConfig,
@@ -58,7 +58,7 @@ class FileManager:
         prefix = get_path_prefix(self.config, tier, visibility)
         return f"{prefix}/{path_suffix}"
 
-    def _normalize_tier(self, tier: StorageTier | str) -> StorageTier:
+    def _normalize_tier(self, tier: Union[StorageTier, str]) -> StorageTier:
         """Normalize storage tier value to enum"""
         if isinstance(tier, str):
             return StorageTier(tier)
@@ -201,7 +201,7 @@ class FileManager:
         # Delete from database via adapter
         await self.adapter.delete(file.id)
 
-    async def get_by_id(self, id: str | int) -> Optional[PhysicalFile]:
+    async def get_by_id(self, id: Union[str, int]) -> Optional[PhysicalFile]:
         """Get file from database by ID"""
         return await self.adapter.find_by_id(id)
 
