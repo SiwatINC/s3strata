@@ -25,6 +25,14 @@ export interface S3TierConfig {
 	port?: number;
 	/** Use SSL/TLS (default: true) */
 	useSSL?: boolean;
+	/**
+	 * S3 region used in the SigV4 credential scope. Defaults to "auto" (Bun's
+	 * default). Some S3-compatible servers validate this strictly and reject
+	 * "auto" -- e.g. Garage requires its configured region (like "garage" or a
+	 * custom name), returning "Authorization header malformed, unexpected
+	 * scope". Set this to match the server's region in that case.
+	 */
+	region?: string;
 	/** S3 access key */
 	accessKey: string;
 	/** S3 secret key */
@@ -51,6 +59,8 @@ export interface S3StrataConfig {
 	port?: number;
 	/** Use SSL/TLS (default: true) - used if hot/cold configs not provided */
 	useSSL?: boolean;
+	/** S3 region for the SigV4 scope (default: "auto") - used if hot/cold configs not provided */
+	region?: string;
 	/** S3 access key - used if hot/cold configs not provided */
 	accessKey?: string;
 	/** S3 secret key - used if hot/cold configs not provided */
@@ -109,6 +119,7 @@ export function getTierConfig(config: S3StrataConfig, tier: StorageTier): S3Tier
 		endpoint: config.endpoint,
 		port: config.port,
 		useSSL: config.useSSL,
+		region: config.region,
 		accessKey: config.accessKey,
 		secretKey: config.secretKey,
 		bucket,

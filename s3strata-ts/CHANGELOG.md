@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-07-05
+
+### Added
+
+- **Configurable S3 region**: Optional `region` field on both shared config and
+  per-tier config (`S3TierConfig`). It is threaded into the Bun `S3Client`
+  credentials so the SigV4 credential scope uses the given region.
+  - Fixes S3-compatible servers that validate the region strictly and reject
+    Bun's default `"auto"` scope — e.g. Garage returns
+    `Authorization header malformed, unexpected scope: '<date>/auto/s3/aws4_request'`.
+    Set `region` to the server's configured region to resolve.
+  - Fully backward compatible: when `region` is omitted, the client keeps Bun's
+    default behavior (`"auto"`) and nothing changes for existing callers.
+
+### Security
+
+- Cleared all 8 `bun audit` advisories (6 high, 2 moderate) in the build
+  toolchain via dependency `overrides` (minimatch, glob, rollup, picomatch,
+  brace-expansion, esbuild). All were transitive **devDependencies** under
+  `tsup` and never shipped in the published package, but the tree now audits
+  clean. Moved `@biomejs/biome` from `dependencies` to `devDependencies` — the
+  package now has zero runtime dependencies.
+
 ## [1.5.0] - 2025-11-12
 
 ### Added

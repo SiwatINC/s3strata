@@ -115,6 +115,10 @@ const config: S3StrataConfig = {
   endpoint: 's3.amazonaws.com',
   port: 443,
   useSSL: true,
+  // Optional. Sets the SigV4 credential-scope region. Omit for Bun's default
+  // ("auto"). Required by servers that validate the scope strictly, e.g.
+  // Garage — set it to that server's configured region.
+  // region: 'garage',
   accessKey: 'YOUR_ACCESS_KEY',
   secretKey: 'YOUR_SECRET_KEY',
   hotBucket: 'my-hot-bucket',

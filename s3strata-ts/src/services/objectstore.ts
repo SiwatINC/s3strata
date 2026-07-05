@@ -46,6 +46,10 @@ export class ObjectStoreService {
 				accessKeyId: tierConfig.accessKey,
 				secretAccessKey: tierConfig.secretKey,
 				bucket: tierConfig.bucket,
+				// Only set region when configured, so unconfigured callers keep
+				// Bun's default ("auto") -- backward compatible. Servers that
+				// validate the SigV4 scope strictly (e.g. Garage) need this set.
+				...(tierConfig.region ? { region: tierConfig.region } : {}),
 			},
 		};
 	}
